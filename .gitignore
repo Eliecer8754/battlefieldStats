@@ -35,8 +35,7 @@ build
 uploads
 tmp
 temp
-*.jpg
-*.png
+
 
 # ========================
 # OS files
