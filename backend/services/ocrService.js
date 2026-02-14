@@ -46,6 +46,7 @@
 // backend/services/ocrService.js
 // backend/services/ocrService.js
 // backend/services/ocrService.js
+// backend/services/ocrService.js
 import fs from "fs";
 import Tesseract from "tesseract.js";
 import { OpenRouter } from "@openrouter/sdk";
@@ -66,6 +67,8 @@ export async function extractStatsFromImage(imagePath) {
       logger: (m) => console.log("OCR:", m.status, m.progress?.toFixed(2)),
     });
 
+    console.log("OCR text:", text); // opcional, para depuración
+
     // 2️⃣ Prompt para el modelo instruct
     const prompt = `
 Analyze this Battlefield scoreboard text:
@@ -76,15 +79,17 @@ player_name, score, kills, deaths, assists, level.
 No explanations, no extra text.
 `;
 
-    // 3️⃣ Llamada al modelo de OpenRouter (SIN streaming)
+    // 3️⃣ Llamada al modelo de OpenRouter
     const response = await openrouter.chat.send({
-      model: "liquid/lfm-2.5-1.2b-instruct:free",
-      messages: [
-        { role: "user", content: prompt }
-      ],
+      chatGenerationParams: {           // 👈 Esto es clave para evitar el error
+        model: "liquid/lfm-2.5-1.2b-instruct:free",
+        messages: [
+          { role: "user", content: prompt }
+        ],
+      },
     });
 
-    // 4️⃣ Obtener la respuesta completa
+    // 4️⃣ Tomar la respuesta
     const output = response.choices[0].message.content;
 
     // 5️⃣ Limpiar posibles ```json
