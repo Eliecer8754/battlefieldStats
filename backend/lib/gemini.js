@@ -1,9 +1,9 @@
-// backend/lib/gemini.js
-import { GoogleGenAI } from "@google/genai";
-import dotenv from "dotenv";
+// // backend/lib/gemini.js
+// import { GoogleGenAI } from "@google/genai";
+// import dotenv from "dotenv";
 
-dotenv.config();
+// dotenv.config();
 
-export const gemini = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
+// export const gemini = new GoogleGenAI({
+//   apiKey: process.env.GEMINI_API_KEY,
+// });
