@@ -4,6 +4,10 @@ import cors from "cors"
 import helmet from "helmet"
 import battlefieldRoutes from "./routes/battlefieldRoutes.js"
 import { sql } from "./config/db.js"
+import path from "path";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 dotenv.config()
 
 const app = express();
@@ -14,6 +18,11 @@ app.use(cors());
 app.use(helmet());
 
 app.use("/api/battlefieldStats", battlefieldRoutes);
+
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+});
 
 async function initDB(){
     try {
