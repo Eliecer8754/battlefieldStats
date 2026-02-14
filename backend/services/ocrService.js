@@ -48,21 +48,14 @@ import fs from "fs";
 import { OpenRouter } from "@openrouter/sdk";
 
 const openrouter = new OpenRouter({
-  apiKey: process.env.OPENROUTER_API_KEY, // tu API Key en .env
+  apiKey: process.env.OPENROUTER_API_KEY,
 });
 
-/**
- * Extrae estadísticas de Battlefield de una imagen usando OpenRouter
- * @param {string} imagePath - Ruta local de la imagen
- * @returns {Promise<string>} - JSON string con arreglo de jugadores
- */
 export async function extractStatsFromImage(imagePath) {
   try {
-    // Leer imagen y convertir a base64
     const imageBuffer = fs.readFileSync(imagePath);
     const base64Image = imageBuffer.toString("base64");
 
-    // Prompt para el modelo instruct
     const prompt = `
 Analyze this Battlefield scoreboard screenshot.
 Return ONLY valid JSON as an array of players, each with:
@@ -71,20 +64,20 @@ No explanations, no extra text.
 Image data (base64): ${base64Image}
     `;
 
-    // Llamada al modelo de OpenRouter (NO streaming)
     const response = await openrouter.chat.send({
-      model: "liquid/lfm-2.5-1.2b-instruct:free",
-      messages: [
-        { role: "user", content: prompt }
-      ],
+      chatGenerationParams: {   // <--- CORRECCIÓN AQUÍ
+        model: "liquid/lfm-2.5-1.2b-instruct:free",
+        messages: [
+          { role: "user", content: prompt }
+        ],
+      },
     });
 
-    // La respuesta completa viene aquí
-    const output = response.choices[0].message.content;
-    return output;
+    return response.choices[0].message.content;
 
   } catch (error) {
     console.error("OpenRouter AI error:", error.response?.data || error.message);
     throw error;
   }
 }
+
