@@ -81,7 +81,6 @@ No explanations, no extra text.
       messages: [
         { role: "user", content: prompt }
       ],
-      stream: true,
     });
 
     // 4️⃣ Recoger la respuesta completa
