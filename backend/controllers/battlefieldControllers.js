@@ -1,0 +1,105 @@
+// backend/controllers/battlefieldControllers.js
+import { extractStatsFromImage } from "../services/ocrService.js";
+import fs from "fs";
+import { sql } from "../config/db.js";
+
+export const getMatchesCount = async (req, res) => {
+  try {
+    const result = await sql`
+      SELECT COUNT(*) AS total FROM matches
+    `;
+
+    res.json({ total: Number(result[0].total) });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error counting matches" });
+  }
+};
+
+export const getSquadStatsByMonth = async (req, res) => {
+  try {
+    const squad = [
+      "Visuetti5075029",
+      "javierKiller13",
+      "RACG507PTY",
+      "isaacvisuetti"
+    ];
+
+
+    const stats = await sql`
+      SELECT 
+        TO_CHAR(m.played_at, 'YYYY-MM') AS month,
+        p.nickname,
+        SUM(s.kills) AS kills,
+        SUM(s.deaths) AS deaths,
+        SUM(s.assists) AS assists,
+        SUM(s.score) AS score
+      FROM stats s
+      JOIN players p ON p.id = s.player_id
+      JOIN matches m ON m.id = s.match_id
+      WHERE s.match_id IN (
+        SELECT st.match_id
+        FROM stats st
+        JOIN players pl ON pl.id = st.player_id
+        WHERE pl.nickname = ANY(${squad})
+        GROUP BY st.match_id
+        HAVING COUNT(DISTINCT st.player_id) = 4
+      )
+      GROUP BY month, p.nickname
+      ORDER BY month, p.nickname;
+    `;
+
+    res.json({ success: true, data: stats });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to get squad stats", details: error.message });
+  }
+};
+
+
+export const uploadScreenshot = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "No image uploaded" });
+
+    // Procesar imagen con Gemini
+    let statsJson = await extractStatsFromImage(req.file.path);
+    statsJson = statsJson.replace(/```json|```/g, "").trim();
+    fs.unlinkSync(req.file.path);
+
+    const data = JSON.parse(statsJson);
+
+    // Crear un nuevo match
+    const insertedMatch = await sql`
+      INSERT INTO matches DEFAULT VALUES RETURNING id
+    `;
+    const matchId = insertedMatch[0].id;
+
+    // Guardar cada jugador y sus stats
+    for (let player of data) {
+      // Insertar jugador si no existe
+      const existing = await sql`
+        SELECT id FROM players WHERE nickname = ${player.player_name}
+      `;
+      let playerId;
+      if (existing.length > 0) {
+        playerId = existing[0].id;
+      } else {
+        const inserted = await sql`
+          INSERT INTO players (nickname) VALUES (${player.player_name}) RETURNING id
+        `;
+        playerId = inserted[0].id;
+      }
+
+      // Insertar stats vinculadas al match
+      await sql`
+        INSERT INTO stats (score, kills, deaths, assists, player_id, match_id)
+        VALUES (${player.score}, ${player.kills}, ${player.deaths}, ${player.assists}, ${playerId}, ${matchId})
+      `;
+    }
+
+    res.json({ message: "Processed and saved successfully", data });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Gemini processing failed", details: error.message });
+  }
+};
