@@ -48,7 +48,7 @@ import fs from "fs";
 import { OpenRouter } from "@openrouter/sdk";
 
 const openrouter = new OpenRouter({
-  apiKey: process.env.OPENROUTER_API_KEY, // Tu API Key en .env
+  apiKey: process.env.OPENROUTER_API_KEY, // tu API Key en .env
 });
 
 /**
@@ -57,43 +57,33 @@ const openrouter = new OpenRouter({
  * @returns {Promise<string>} - JSON string con arreglo de jugadores
  */
 export async function extractStatsFromImage(imagePath) {
-  try {
-    // Leer imagen y convertir a base64
-    const imageBuffer = fs.readFileSync(imagePath);
-    const base64Image = imageBuffer.toString("base64");
+  const imageBuffer = fs.readFileSync(imagePath);
+  const base64Image = imageBuffer.toString("base64");
 
-    // Prompt para el modelo instruct
-    const prompt = `
+  const prompt = `
 Analyze this Battlefield scoreboard screenshot.
 Return ONLY valid JSON as an array of players, each with:
 player_name, score, kills, deaths, assists, level.
 No explanations, no extra text.
 Image data (base64): ${base64Image}
-    `;
+  `;
 
-    // Llamada al modelo de OpenRouter con streaming
+  try {
     const stream = await openrouter.chat.send({
       model: "liquid/lfm-2.5-1.2b-instruct:free",
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      stream: true, // recibimos los datos por chunks
+      messages: [{ role: "user", content: prompt }],
+      stream: true,
     });
 
-    // Recogemos la respuesta completa
     let output = "";
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content;
       if (content) output += content;
     }
 
-    return output; // JSON string listo para parsear
+    return output;
   } catch (error) {
     console.error("OpenRouter AI error:", error.response?.data || error.message);
     throw error;
   }
 }
-
