@@ -21,12 +21,12 @@ const App = () => {
   useEffect(() => {
   const fetchData = async () => {
     try {
-      const statsRes = await fetch("http://localhost:3000/api/battlefieldStats");
+      const statsRes = await fetch("https://TU-APP.onrender.com/api/battlefieldStats");
       if (!statsRes.ok) throw new Error("Failed to fetch stats");
       const statsData = await statsRes.json();
       setStats(statsData.data);
 
-      const matchesRes = await fetch("http://localhost:3000/api/battlefieldStats/matches/count");
+      const matchesRes = await fetch("https://TU-APP.onrender.com/api/battlefieldStats/matches/count");
       if (!matchesRes.ok) throw new Error("Failed to fetch matches count");
       const matchesData = await matchesRes.json();
       setMatchesCount(matchesData.total);
