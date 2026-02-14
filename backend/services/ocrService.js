@@ -44,40 +44,59 @@
 // backend/services/ocrService.js
 // backend/services/ocrService.js
 // backend/services/ocrService.js
+// backend/services/ocrService.js
 import fs from "fs";
+import Tesseract from "tesseract.js";
 import { OpenRouter } from "@openrouter/sdk";
 
 const openrouter = new OpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
 });
 
+/**
+ * Extrae estadísticas de Battlefield de una imagen usando OCR + OpenRouter
+ * @param {string} imagePath - Ruta local de la imagen
+ * @returns {Promise<string>} - JSON string con arreglo de jugadores
+ */
 export async function extractStatsFromImage(imagePath) {
   try {
-    const imageBuffer = fs.readFileSync(imagePath);
-    const base64Image = imageBuffer.toString("base64");
+    // 1️⃣ OCR para extraer texto del scoreboard
+    const { data: { text } } = await Tesseract.recognize(imagePath, 'eng', {
+      logger: (m) => console.log("OCR:", m.status, m.progress?.toFixed(2)),
+    });
 
+    // 2️⃣ Prompt para el modelo instruct
     const prompt = `
-Analyze this Battlefield scoreboard screenshot.
+Analyze this Battlefield scoreboard text:
+${text}
+
 Return ONLY valid JSON as an array of players, each with:
 player_name, score, kills, deaths, assists, level.
 No explanations, no extra text.
-Image data (base64): ${base64Image}
-    `;
+`;
 
-    const response = await openrouter.chat.send({
-      chatGenerationParams: {   // <--- CORRECCIÓN AQUÍ
-        model: "liquid/lfm-2.5-1.2b-instruct:free",
-        messages: [
-          { role: "user", content: prompt }
-        ],
-      },
+    // 3️⃣ Llamada al modelo de OpenRouter
+    const stream = await openrouter.chat.send({
+      model: "liquid/lfm-2.5-1.2b-instruct:free",
+      messages: [
+        { role: "user", content: prompt }
+      ],
+      stream: true,
     });
 
-    return response.choices[0].message.content;
+    // 4️⃣ Recoger la respuesta completa
+    let output = "";
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content;
+      if (content) output += content;
+    }
 
+    // 5️⃣ Limpiar posibles ```json
+    return output.replace(/```json|```/g, "").trim();
   } catch (error) {
-    console.error("OpenRouter AI error:", error.response?.data || error.message);
+    console.error("OCR + OpenRouter error:", error.response?.data || error.message);
     throw error;
   }
 }
+
 
