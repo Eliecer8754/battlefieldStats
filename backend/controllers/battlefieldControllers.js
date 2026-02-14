@@ -61,7 +61,7 @@ export const uploadScreenshot = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No image uploaded" });
 
-    // Procesar imagen con Gemini
+    // Procesar imagen con OpenRouter
     let statsJson = await extractStatsFromImage(req.file.path);
     statsJson = statsJson.replace(/```json|```/g, "").trim();
     fs.unlinkSync(req.file.path);
@@ -69,28 +69,20 @@ export const uploadScreenshot = async (req, res) => {
     const data = JSON.parse(statsJson);
 
     // Crear un nuevo match
-    const insertedMatch = await sql`
-      INSERT INTO matches DEFAULT VALUES RETURNING id
-    `;
+    const insertedMatch = await sql`INSERT INTO matches DEFAULT VALUES RETURNING id`;
     const matchId = insertedMatch[0].id;
 
     // Guardar cada jugador y sus stats
     for (let player of data) {
-      // Insertar jugador si no existe
-      const existing = await sql`
-        SELECT id FROM players WHERE nickname = ${player.player_name}
-      `;
+      const existing = await sql`SELECT id FROM players WHERE nickname = ${player.player_name}`;
       let playerId;
       if (existing.length > 0) {
         playerId = existing[0].id;
       } else {
-        const inserted = await sql`
-          INSERT INTO players (nickname) VALUES (${player.player_name}) RETURNING id
-        `;
+        const inserted = await sql`INSERT INTO players (nickname) VALUES (${player.player_name}) RETURNING id`;
         playerId = inserted[0].id;
       }
 
-      // Insertar stats vinculadas al match
       await sql`
         INSERT INTO stats (score, kills, deaths, assists, player_id, match_id)
         VALUES (${player.score}, ${player.kills}, ${player.deaths}, ${player.assists}, ${playerId}, ${matchId})
@@ -100,6 +92,6 @@ export const uploadScreenshot = async (req, res) => {
     res.json({ message: "Processed and saved successfully", data });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Gemini processing failed", details: error.message });
+    res.status(500).json({ error: "AI processing failed", details: error.message });
   }
 };
