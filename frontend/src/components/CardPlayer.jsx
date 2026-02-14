@@ -1,6 +1,7 @@
 import React from 'react'
 
-const CardPlayer = ({nickname, kills, deaths, assists, score, image, rank}) => {
+const CardPlayer = ({nickname, kills, deaths, assists, score, image, rank, medalla}) => {
+    
     const getStyles = () => {
         switch (rank) {
             case 0:
@@ -15,8 +16,9 @@ const CardPlayer = ({nickname, kills, deaths, assists, score, image, rank}) => {
         };
 
   return (
-    <div className={`flex flex-col items-center bg-gray-700 rounded-4xl font-normal lg:font-bold border-2 transition-all duration-500 ${getStyles()} w-70 h-100  lg:w-100 lg:h-140 text-md lg:text-xl border-2 mb-20 lg:mb-0
+    <div className={`relative flex flex-col items-center bg-gray-700 rounded-4xl font-normal lg:font-bold border-2 transition-all duration-500 ${getStyles()} w-70 h-100  lg:w-100 lg:h-140 text-md lg:text-xl border-2 mb-20 lg:mb-0
     `}>
+    <img src={medalla} className='absolute w-22 -top-0.5 right-5  ' />
     <span className='mt-10'>{nickname}</span>
     <div>
         <img src={image} alt="" className='w-50 h-40 lg:w-75 lg:h-65 rounded-2xl mt-2 mb-2 ' />
