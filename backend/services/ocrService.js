@@ -45,6 +45,7 @@
 // backend/services/ocrService.js
 // backend/services/ocrService.js
 // backend/services/ocrService.js
+// backend/services/ocrService.js
 import fs from "fs";
 import Tesseract from "tesseract.js";
 import { OpenRouter } from "@openrouter/sdk";
@@ -75,20 +76,16 @@ player_name, score, kills, deaths, assists, level.
 No explanations, no extra text.
 `;
 
-    // 3️⃣ Llamada al modelo de OpenRouter
-    const stream = await openrouter.chat.send({
+    // 3️⃣ Llamada al modelo de OpenRouter (SIN streaming)
+    const response = await openrouter.chat.send({
       model: "liquid/lfm-2.5-1.2b-instruct:free",
       messages: [
         { role: "user", content: prompt }
       ],
     });
 
-    // 4️⃣ Recoger la respuesta completa
-    let output = "";
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) output += content;
-    }
+    // 4️⃣ Obtener la respuesta completa
+    const output = response.choices[0].message.content;
 
     // 5️⃣ Limpiar posibles ```json
     return output.replace(/```json|```/g, "").trim();
@@ -97,5 +94,6 @@ No explanations, no extra text.
     throw error;
   }
 }
+
 
 
