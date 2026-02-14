@@ -15,13 +15,13 @@ const CardPlayer = ({nickname, kills, deaths, assists, score, image, rank}) => {
         };
 
   return (
-    <div className={`flex flex-col items-center w-100 h-140 bg-gray-700 rounded-4xl font-bold text-xl border-2 transition-all duration-500 ${getStyles()} flex-col items-center  w-100 h-140 bg-gray-700 rounded-4xl font-bold text-xl border-2
+    <div className={`flex flex-col items-center bg-gray-700 rounded-4xl font-normal lg:font-bold border-2 transition-all duration-500 ${getStyles()} w-70 h-100  lg:w-100 lg:h-140 text-md lg:text-xl border-2 mb-20 lg:mb-0
     `}>
     <span className='mt-10'>{nickname}</span>
     <div>
-        <img src={image} alt="" className='w-75 h-65 rounded-2xl mt-2 mb-2 ' />
+        <img src={image} alt="" className='w-50 h-40 lg:w-75 lg:h-65 rounded-2xl mt-2 mb-2 ' />
     </div>
-    <div className='w-75 h-36 flex flex-col justify-evenly'>
+    <div className='w-50 lg:w-75 lg:h-36 flex flex-col justify-evenly'>
         <div>
             <span>Kills: </span>
                 <span>{kills}</span>
