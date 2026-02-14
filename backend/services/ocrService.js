@@ -57,32 +57,34 @@ const openrouter = new OpenRouter({
  * @returns {Promise<string>} - JSON string con arreglo de jugadores
  */
 export async function extractStatsFromImage(imagePath) {
-  const imageBuffer = fs.readFileSync(imagePath);
-  const base64Image = imageBuffer.toString("base64");
+  try {
+    // Leer imagen y convertir a base64
+    const imageBuffer = fs.readFileSync(imagePath);
+    const base64Image = imageBuffer.toString("base64");
 
-  const prompt = `
+    // Prompt para el modelo instruct
+    const prompt = `
 Analyze this Battlefield scoreboard screenshot.
 Return ONLY valid JSON as an array of players, each with:
 player_name, score, kills, deaths, assists, level.
 No explanations, no extra text.
 Image data (base64): ${base64Image}
-  `;
+    `;
 
-  try {
-    // Streaming OFF
+    // Llamada al modelo de OpenRouter (NO streaming)
     const response = await openrouter.chat.send({
       model: "liquid/lfm-2.5-1.2b-instruct:free",
-      messages: [{ role: "user", content: prompt }],
-      // stream: true,  <-- quitamos
+      messages: [
+        { role: "user", content: prompt }
+      ],
     });
 
-    // Para free model, response.choices[0].message.content contiene la respuesta
+    // La respuesta completa viene aquí
     const output = response.choices[0].message.content;
-
     return output;
+
   } catch (error) {
     console.error("OpenRouter AI error:", error.response?.data || error.message);
     throw error;
   }
 }
-
