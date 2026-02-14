@@ -69,17 +69,15 @@ Image data (base64): ${base64Image}
   `;
 
   try {
-    const stream = await openrouter.chat.send({
+    // Streaming OFF
+    const response = await openrouter.chat.send({
       model: "liquid/lfm-2.5-1.2b-instruct:free",
       messages: [{ role: "user", content: prompt }],
-      stream: true,
+      // stream: true,  <-- quitamos
     });
 
-    let output = "";
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) output += content;
-    }
+    // Para free model, response.choices[0].message.content contiene la respuesta
+    const output = response.choices[0].message.content;
 
     return output;
   } catch (error) {
@@ -87,3 +85,4 @@ Image data (base64): ${base64Image}
     throw error;
   }
 }
+
