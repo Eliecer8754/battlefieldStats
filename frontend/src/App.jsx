@@ -14,6 +14,9 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [matchesCount, setMatchesCount] = useState(0);
+  const totalSquadKills = stats.reduce((total, player) => {
+    return total + Number(player.kills);
+  }, 0);
 
   const playerImages = {
     RACG507PTY: ruben,
@@ -79,19 +82,30 @@ const App = () => {
       <div className=' flex flex-col lg:flex-row w-full justify-evenly items-center mt-20'>
         {[...stats]
         .sort((a, b) => Number(b.score) - Number(a.score))
-        .map((player, index) => (
-          <CardPlayer
-            key={`${player.month}-${player.nickname}`}
-            nickname={player.nickname}
-            kills={Number(player.kills)}
-            deaths={Number(player.deaths)}
-            assists={Number(player.assists)}
-            score={Number(player.score)}
-            image={playerImages[player.nickname]}
-            rank={index}
-            medalla={medals[index]}
-          />
-        ))}
+        .map((player, index) => {
+           const playerKills = Number(player.kills);
+
+          const killContribution =
+            totalSquadKills === 0
+              ? 0
+              : ((playerKills / totalSquadKills) * 100).toFixed(1);
+          return(
+            (
+            <CardPlayer
+              key={`${player.month}-${player.nickname}`}
+              nickname={player.nickname}
+              kills={Number(player.kills)}
+              deaths={Number(player.deaths)}
+              assists={Number(player.assists)}
+              score={Number(player.score)}
+              image={playerImages[player.nickname]}
+              rank={index}
+              medalla={medals[index]}
+              killContribution={killContribution}
+            />
+        )
+          )
+        })}
       </div>
     </div>
   )
