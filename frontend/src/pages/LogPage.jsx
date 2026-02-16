@@ -39,9 +39,10 @@ const LogPage = () => {
             >
               <h2 className="text-xl font-bold">
                 📅 {new Date(date).toLocaleDateString("es-ES", {
-                  month: "long",
-                  day: "numeric",
-                })}
+                    month: "long",
+                    day: "numeric",
+                    timeZone: "UTC"
+                  })}
               </h2>
 
               <span>{isOpen ? "▲" : "▼"}</span>
