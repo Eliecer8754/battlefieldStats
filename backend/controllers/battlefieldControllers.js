@@ -2,6 +2,7 @@
 import { extractStatsFromImage } from "../services/ocrService.js";
 import fs from "fs";
 import { sql } from "../config/db.js";
+import { io } from "../server.js";
 
 export const getMatchesCount = async (req, res) => {
   try {
@@ -89,9 +90,58 @@ export const uploadScreenshot = async (req, res) => {
       `;
     }
 
+    io.emit("new-stats");
     res.json({ message: "Processed and saved successfully", data });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "AI processing failed", details: error.message });
   }
 };
+
+
+export const getMatchesGroupedByDay = async (req, res) => {
+  try {
+    const result = await sql`
+      SELECT 
+        DATE(m.played_at) AS match_day,
+        m.id AS match_id,
+        json_agg(
+          json_build_object(
+            'nickname', p.nickname,
+            'kills', s.kills,
+            'deaths', s.deaths,
+            'assists', s.assists,
+            'score', s.score
+          )
+        ) AS players
+      FROM matches m
+      JOIN stats s ON s.match_id = m.id
+      JOIN players p ON p.id = s.player_id
+      GROUP BY match_day, m.id
+      ORDER BY match_day DESC, m.id DESC
+    `;
+
+    // Now group matches under each day
+    const grouped = result.reduce((acc, row) => {
+      const day = row.match_day;
+
+      if (!acc[day]) {
+        acc[day] = [];
+      }
+
+      acc[day].push({
+        match_id: row.match_id,
+        players: row.players
+      });
+
+      return acc;
+    }, {});
+
+    res.json(grouped);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to get matches by day" });
+  }
+};
+

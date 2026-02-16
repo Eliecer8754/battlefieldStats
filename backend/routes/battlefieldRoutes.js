@@ -1,7 +1,7 @@
 // backend/routes/battlefieldRoutes.js
 import express from "express";
 import multer from "multer";
-import { getMatchesCount, getSquadStatsByMonth, uploadScreenshot } from "../controllers/battlefieldControllers.js";
+import { getMatchesCount, getMatchesGroupedByDay, getSquadStatsByMonth, uploadScreenshot } from "../controllers/battlefieldControllers.js";
 
 const router = express.Router();
 
@@ -11,4 +11,5 @@ const upload = multer({ dest: "backend/uploads/" });
 router.post("/upload", upload.single("image"), uploadScreenshot);
 router.get("/", getSquadStatsByMonth)
 router.get("/matches/count", getMatchesCount)
+router.get("/matches/grouped", getMatchesGroupedByDay)
 export default router;

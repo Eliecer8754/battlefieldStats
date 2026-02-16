@@ -1,32 +1,43 @@
-import express from "express"
-import dotenv from "dotenv"
-import cors from "cors"
-import helmet from "helmet"
-import battlefieldRoutes from "./routes/battlefieldRoutes.js"
-import { sql } from "./config/db.js"
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import helmet from "helmet";
+import battlefieldRoutes from "./routes/battlefieldRoutes.js";
+import { sql } from "./config/db.js";
 import path from "path";
 import { fileURLToPath } from "url";
+import { Server } from "socket.io";
+import http from "http"; // ✅ YOU WERE MISSING THIS
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-dotenv.config()
+
+dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 3000;
 
-app.use(express.json())
+app.use(express.json());
 app.use(cors());
 app.use(helmet());
 
 app.use("/api/battlefieldStats", battlefieldRoutes);
+
+const server = http.createServer(app); // ✅ create HTTP server
+
+export const io = new Server(server, {
+  cors: {
+    origin: "*",
+  },
+});
 
 app.use(express.static(path.join(__dirname, "../frontend/dist")));
 app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
 });
 
-async function initDB(){
-    try {
-    // Tabla de jugadores
+async function initDB() {
+  try {
     await sql`
       CREATE TABLE IF NOT EXISTS players (
         id SERIAL PRIMARY KEY,
@@ -35,7 +46,6 @@ async function initDB(){
       )
     `;
 
-    // Tabla de partidas
     await sql`
       CREATE TABLE IF NOT EXISTS matches (
         id SERIAL PRIMARY KEY,
@@ -43,7 +53,6 @@ async function initDB(){
       )
     `;
 
-    // Tabla de estadísticas
     await sql`
       CREATE TABLE IF NOT EXISTS stats (
         id SERIAL PRIMARY KEY,
@@ -62,9 +71,8 @@ async function initDB(){
   }
 }
 
-initDB().then(()=>{
-    app.listen(PORT, ()=>{
-        console.log("app runing in port:", PORT)
-    })
-})
-
+initDB().then(() => {
+  server.listen(PORT, () => {  
+    console.log("Server running on port:", PORT);
+  });
+});
