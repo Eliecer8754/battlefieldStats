@@ -24,13 +24,13 @@ const LogPage = () => {
   };
 
   return (
-    <div className="pt-15 p-6 bg-gray-800 min-h-screen text-white">
+    <div className="lg:flex lg:justify-center pt-15 p-6 bg-gray-800 min-h-screen text-white">
       {sortedDates.map((date) => {
         const matches = matchesByDay[date];
         const isOpen = openDate === date;
 
         return (
-          <div key={date} className="mb-6 rounded-lg overflow-hidden">
+          <div key={date} className="mb-6 lg:w-xl rounded-lg overflow-hidden">
             
             
             <div
@@ -83,7 +83,7 @@ const LogPage = () => {
                           <span>{player.kills}</span>
                           <span>{player.assists}</span>
                           <span>{player.deaths}</span>
-                          <span className="text-left">{player.score}</span>
+                          <span className="text-center">{player.score}</span>
                         </div>
 
                       </div>
