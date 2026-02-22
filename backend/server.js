@@ -7,7 +7,7 @@ import { sql } from "./config/db.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import { Server } from "socket.io";
-import http from "http"; // ✅ YOU WERE MISSING THIS
+import http from "http";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,7 +23,7 @@ app.use(helmet());
 
 app.use("/api/battlefieldStats", battlefieldRoutes);
 
-const server = http.createServer(app); // ✅ create HTTP server
+const server = http.createServer(app);
 
 export const io = new Server(server, {
   cors: {

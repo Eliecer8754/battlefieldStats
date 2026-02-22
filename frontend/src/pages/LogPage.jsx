@@ -24,7 +24,7 @@ const LogPage = () => {
   };
 
   return (
-    <div className="lg:flex lg:justify-center pt-15 p-6 bg-gray-800 min-h-screen text-white">
+    <div className="lg:flex lg:flex-col lg:w-full lg:items-center lg:h-full pt-15 p-6 bg-gray-800 min-h-screen text-white">
       {sortedDates.map((date) => {
         const matches = matchesByDay[date];
         const isOpen = openDate === date;
