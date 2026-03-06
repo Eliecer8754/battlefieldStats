@@ -36,17 +36,40 @@ const CardStats = () => {
   };
 
 
-const fetchData = async () => {
+  const fetchData = async () => {
     try {
       const statsRes = await fetch("https://battlefieldstats.onrender.com/api/battlefieldStats");
       const statsData = await statsRes.json();
-      setStats(statsData.data);
 
-      const matchesRes = await fetch("https://battlefieldstats.onrender.com/api/battlefieldStats/matches/count");
+      const squad = [
+        "Visuetti5075029",
+        "javierKiller13",
+        "RACG507PTY",
+        "isaacvisuetti"
+      ];
+
+      const filledStats = squad.map((nickname) => {
+        const player = statsData.data.find(p => p.nickname === nickname);
+
+        return player || {
+          nickname,
+          kills: 0,
+          deaths: 0,
+          assists: 0,
+          score: 0
+        };
+      });
+
+      setStats(filledStats);
+
+      const matchesRes = await fetch(
+        "https://battlefieldstats.onrender.com/api/battlefieldStats/matches/count"
+      );
       const matchesData = await matchesRes.json();
-      setMatchesCount(matchesData.total);
 
+      setMatchesCount(matchesData.total);
       setLoading(false);
+
     } catch (err) {
       setError(err.message);
       setLoading(false);

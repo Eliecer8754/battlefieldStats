@@ -7,7 +7,9 @@ import { io } from "../server.js";
 export const getMatchesCount = async (req, res) => {
   try {
     const result = await sql`
-      SELECT COUNT(*) AS total FROM matches
+      SELECT COUNT(*) AS total
+      FROM matches
+      WHERE DATE_TRUNC('month', played_at) = DATE_TRUNC('month', CURRENT_DATE)
     `;
 
     res.json({ total: Number(result[0].total) });
@@ -26,10 +28,8 @@ export const getSquadStatsByMonth = async (req, res) => {
       "isaacvisuetti"
     ];
 
-
     const stats = await sql`
       SELECT 
-        TO_CHAR(m.played_at, 'YYYY-MM') AS month,
         p.nickname,
         SUM(s.kills) AS kills,
         SUM(s.deaths) AS deaths,
@@ -38,19 +38,13 @@ export const getSquadStatsByMonth = async (req, res) => {
       FROM stats s
       JOIN players p ON p.id = s.player_id
       JOIN matches m ON m.id = s.match_id
-      WHERE s.match_id IN (
-        SELECT st.match_id
-        FROM stats st
-        JOIN players pl ON pl.id = st.player_id
-        WHERE pl.nickname = ANY(${squad})
-        GROUP BY st.match_id
-        HAVING COUNT(DISTINCT st.player_id) = 4
-      )
-      GROUP BY month, p.nickname
-      ORDER BY month, p.nickname;
+      WHERE p.nickname = ANY(${squad})
+      AND DATE_TRUNC('month', m.played_at) = DATE_TRUNC('month', CURRENT_DATE)
+      GROUP BY p.nickname
     `;
 
     res.json({ success: true, data: stats });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to get squad stats", details: error.message });
